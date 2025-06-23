@@ -7,6 +7,38 @@
     --text: #333333;
 }
 
+:root {
+
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Open Sans', sans-serif;
+
+    --light: 300;
+    --regular: 400;
+    --semibold: 600;
+    --bold: 700;
+    --black: 900;
+
+
+    --text-xs: 0.75rem;
+    --text-sm: 1rem;
+    --text-md: 1.333rem;
+    --text-lg: 1.777rem;
+    --text-xl: 2.369rem;
+    --text-xxl: 3.157rem;
+}
+
+h1 {
+    font-size: var(--text-xxl);
+}
+
+h2 {
+    font-size: var(--text-xl);
+}
+
+h3 {
+    font-size: var(--text-lg);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -25,8 +57,10 @@ html {
 body {
     background-color: var(--cream);
     color: var(--text);
-
-    font-family: 'Segoe UI', sans-serif;
+    font-family: var(--font-body);
+    font-weight: var(--regular);
+    line-height: 1.6;
+    color: #333;
 
 }
 
@@ -44,7 +78,6 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 0.3rem 1rem;
-    /*background-color: #f5f5f5;*/
     position: sticky;
     top: 0;
     z-index: 100;
@@ -53,23 +86,12 @@ header {
 
 }
 
-/*.nav-brand img {
-    width: auto;
-    padding-top: 10px;
-    padding-bottom: 30px;
-    height: 110px;
-    margin-left: 20px;
-}*/
-/* Reduce vertical padding around the logo */
 .nav-brand img {
     height: 80px;
-    /* Down from 110px */
     padding-top: 5px;
-    /* Reduced from 10px */
     padding-bottom: 10px;
-    /* Reduced from 30px */
     margin-left: 10px;
-    /* Reduced from 20px */
+
 }
 
 ul {
@@ -88,8 +110,10 @@ li {
 .nav-link {
     text-decoration: none;
     color: white;
-    font-weight: bold;
     transition: color 0.3s;
+    font-family: var(--font-body);
+    font-weight: var(--semibold);
+    letter-spacing: 1px;
 }
 
 .nav-link:hover {
@@ -134,7 +158,21 @@ li {
 .hero-content h1 {
     color: var(--primary);
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+    font-family: var(--font-heading);
+    font-weight: var(--black);
+    line-height: 1.2;
+    margin-bottom: 0.5em;
+    text-shadow: 2px 3px 0 rgba(0, 0, 0, 0.05);
+    position: relative;
+    font-size: 45px;
 
+}
+
+
+
+.hero-title {
+    font-size: clamp(2.5rem, 8vw, var(--text-xxl));
+    letter-spacing: -0.5px;
 }
 
 .outline-text {
@@ -163,6 +201,12 @@ li {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.price {
+    font-family: var(--font-heading);
+    font-weight: var(--bold);
+    color: var(--gold);
+}
+
 .aboutus {
     padding: 4rem 2rem;
     background-color: #fefefe;
@@ -171,44 +215,46 @@ li {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    /* Changed from '0' to '0 auto' to center container */
+
 }
 
 .about-content {
     display: flex;
     align-items: center;
     gap: 4rem;
-    /* Increased gap for better spacing */
     flex-wrap: wrap;
 }
 
 .about-img {
     flex: 1;
     min-width: 300px;
-    /* Prevent image from shrinking too much */
+
 }
 
 .about-img img {
     width: 100%;
     max-width: 500px;
     height: 400px;
-    /* Fixed height for consistency */
     border-radius: 12px;
     object-fit: cover;
-    /* Ensures image fills container without distortion */
+
 }
 
 .about-text {
     flex: 1;
     min-width: 300px;
     text-align: left;
-    /* Changed from center */
+
 }
 
 .about-text h2 {
     font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 1.5rem;
+    font-family: var(--font-heading);
+    font-weight: var(--black);
+    line-height: 1.2;
+    margin-bottom: 0.5em;
 }
 
 .about-text p {
@@ -227,6 +273,10 @@ li {
     font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 1rem;
+    font-family: var(--font-heading);
+    font-weight: var(--black);
+    line-height: 1.2;
+    margin-bottom: 0.5em;
 }
 
 .catalog-subtitle {
@@ -259,6 +309,10 @@ li {
 
 .catalog-item h4 {
     margin: 1rem 0 0.5rem;
+    font-family: var(--font-heading);
+    font-weight: var(--bold);
+    font-size: var(--text-md);
+    color: var(--dark-green);
 }
 
 .catalog-item p {
@@ -273,7 +327,10 @@ li {
     color: white;
     padding: 0.3rem 0.6rem;
     border-radius: 5px;
-    font-size: 0.8rem;
+    font-family: var(--font-body);
+    font-weight: var(--bold);
+    font-size: var(--text-xs);
+    letter-spacing: 0.5px;
 }
 
 .contact {
@@ -286,6 +343,10 @@ li {
     font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 1rem;
+    font-family: var(--font-heading);
+    font-weight: var(--black);
+    line-height: 1.2;
+    margin-bottom: 0.5em;
 }
 
 .contact-form {
@@ -429,12 +490,12 @@ li {
 
     .nav-bar .menu {
         margin-top: 0.5rem;
-        /* Less space between logo and nav */
+
     }
 
     .nav-link {
         font-size: 0.85rem;
-        /* Smaller text */
+
     }
 
     .hero-content {
@@ -444,6 +505,10 @@ li {
 
     .hero-content h1 {
         font-size: 2.5rem;
+        font-family: var(--font-heading);
+        font-weight: var(--black);
+        line-height: 1.2;
+        margin-bottom: 0.5em;
     }
 
     .catalog-grid {
@@ -471,11 +536,23 @@ li {
 
     .about-img img {
         height: 300px;
-        /* Smaller height on mobile */
+
     }
 
     .about-text {
         text-align: center;
-        /* Center text on mobile */
+
+    }
+
+    :root {
+
+        --text-xxl: 2.5rem;
+        --text-xl: 2rem;
+        --text-lg: 1.5rem;
+    }
+
+    .hero-content h1::after {
+        width: 60px;
+        bottom: -5px;
     }
 }
