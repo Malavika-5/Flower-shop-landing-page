@@ -18,4 +18,4 @@ A responsive website for a floral boutique with:
 - Font Awesome icons
 
 ## View Project
-[Live Demo]()
+[Live Demo](https://malavika-5.github.io/Flower-shop-landing-page/)
