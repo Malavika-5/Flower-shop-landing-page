@@ -183,7 +183,7 @@ li {
 
 .hero-button {
     display: inline-block;
-    margin-top: 2rem;
+    margin-top: 0.5rem;
     padding: 0.75rem 1.5rem;
     background-color: var(--gold);
     color: white;
@@ -472,6 +472,23 @@ li {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 0.9rem;
 }
+
+.quantity-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.8rem 0;
+    justify-content: center;
+}
+
+.quantity-wrapper input {
+    width: 60px;
+    padding: 0.3rem;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
 
 @media (max-width: 768px) {
     header {
