@@ -508,9 +508,10 @@ li {
 .cart-items {
     max-width: 900px;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    justify-content: center;
 }
 
 .cart-item {
@@ -626,6 +627,8 @@ li {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    flex-direction: row;
 }
 
 .cart-total p {
@@ -646,6 +649,7 @@ li {
     border-radius: 25px;
     cursor: pointer;
     transition: background 0.3s ease;
+    display: flex;
 }
 
 .checkout-btn:hover {
