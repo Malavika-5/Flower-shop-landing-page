@@ -5,7 +5,7 @@ app = Flask(__name__)
 # Homepage (currently just a test)
 @app.route('/')
 def home():
-    return "Welcome to the Flower Shop Backend!"
+    return render_template('index.html')
 
 # Contact form submission
 @app.route('/contact', methods=['POST'])
