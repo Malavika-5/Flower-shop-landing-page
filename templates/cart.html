@@ -88,6 +88,34 @@
             </div>
         </div>
     </section> -->
+
+    <!-- Script inside HTML -->
+    <script>
+        // When page loads
+        document.addEventListener("DOMContentLoaded", () => {
+            const buttons = document.querySelectorAll(".add-to-cart");
+
+            buttons.forEach(button => {
+                button.addEventListener("click", () => {
+                    const productId = button.dataset.id;
+                    const productName = button.dataset.name;
+                    const productPrice = button.dataset.price;
+
+                    // Send request to Flask backend (using Fetch API)
+                    fetch("/add_to_cart", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: productId, name: productName, price: productPrice })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Update cart count in navbar instantly
+                            document.getElementById("cart-count").innerText = data.cart_count;
+                        });
+                });
+            });
+        });
+    </script>
 </body>
 
 
