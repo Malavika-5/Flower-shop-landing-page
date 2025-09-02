@@ -14,6 +14,12 @@ def home():
 def cart():
     return render_template('cart.html')
 
+
+@app.route('/order')
+def order():
+    return render_template('order.html')
+
+
 # Contact form submission
 
 
