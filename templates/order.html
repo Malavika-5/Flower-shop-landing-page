@@ -38,6 +38,93 @@
         </nav>
     </header>
 
+    <section class="order-section">
+        <div class="order-container">
+
+            <!-- LEFT SIDE -->
+            <div class="order-info">
+                <div class="step active" id="emailStep">
+                    <h3>Your Email</h3>
+                    <div class="step-content">
+                        <input type="email" id="emailInput" placeholder="Email address" required>
+                        <button onclick="nextStep(1)">Continue</button>
+                    </div>
+                </div>
+
+                <div class="step" id="deliveryStep">
+                    <h3>Delivery</h3>
+                    <div class="step-content">
+                        <input type="text" id="deliveryInput" placeholder="Address" required>
+                        <button onclick="nextStep(2)">Continue</button>
+                    </div>
+                </div>
+
+                <div class="step" id="paymentStep">
+                    <h3>Payment</h3>
+                    <div class="step-content">
+                        <input type="text" placeholder="Card Number" required>
+                        <button onclick="nextStep(3)">Continue</button>
+                    </div>
+                </div>
+
+                <div class="step" id="reviewStep">
+                    <h3>Review & Confirm Order</h3>
+                    <p>Email: <span id="reviewEmail"></span></p>
+                    <p>Delivery: <span id="reviewDelivery"></span></p>
+                    <button onclick="confirmOrder()">Confirm Order</button>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="order-summary">
+                <h3>Order Summary</h3>
+                <div class="summary-item">
+                    <img src="images/f1.jpeg" alt="flower">
+                    <p><strong>Eternal Blush</strong> - $80</p>
+                </div>
+                <hr>
+                <p>Subtotal: <strong>$80</strong></p>
+                <p>Total: <strong>$80</strong></p>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        let currentStep = 0;
+        const steps = ["emailStep", "deliveryStep", "paymentStep", "reviewStep"];
+
+        function showStep(stepIndex) {
+            steps.forEach((step, i) => {
+                document.getElementById(step).style.display = (i === stepIndex) ? "block" : "none";
+            });
+        }
+
+        function nextStep(stepIndex) {
+            // If going to review step, populate summary
+            if (stepIndex === 3) {
+                document.getElementById("reviewEmail").textContent = document.getElementById("emailInput").value;
+                document.getElementById("reviewDelivery").textContent = document.getElementById("deliveryInput").value;
+                document.getElementById("reviewPayment").textContent = document.querySelector('input[name="payment"]:checked')?.value || "Not Selected";
+            }
+
+            currentStep = stepIndex;
+            showStep(stepIndex);
+        }
+
+        function confirmOrder() {
+            alert("✅ Order Confirmed! Thank you for your purchase.");
+            // Here you can redirect to order success page or backend call
+        }
+
+        // Show first step on load
+        document.addEventListener("DOMContentLoaded", () => {
+            showStep(currentStep);
+        });
+
+    </script>
+
+
 </body>
 
 </html>
