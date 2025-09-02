@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Flower Shop</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +24,7 @@
 <body>
     <header>
         <a class="nav-brand" href="#">
-            <img src="images/logo.png" alt="logo" id="logo" />
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo" id="logo" />
         </a>
 
         <nav id="nav-bar" class="nav-bar">
@@ -52,7 +52,7 @@
         <div class="container">
             <div class="about-content">
                 <div class="about-img">
-                    <img src="images/abt3.jpg" alt="aboutus">
+                    <img src="{{ url_for('static', filename='images/abt3.jpg') }}" alt="aboutus">
                 </div>
                 <div class="about-text">
                     <h2>About Us</h2>
@@ -72,47 +72,77 @@
     <section id="catalog" class="catalog">
         <h2>Catalog</h2>
         <p class="catalog-subtitle">
-            Choose form our most popular flower boquets to send to ant occasion. Next day delivery is
-            available on all of our best selling flowers. Some can be deliveres within hours of ordering.
+            Choose from our most popular flower bouquets to send to any occasion. Next day delivery is
+            available on all of our best-selling flowers. Some can be delivered within hours of ordering.
         </p>
         <div class="catalog-grid">
             <div class="catalog-item popular">
-                <img src="images/f1.jpeg" alt="placeholder">
+                <img src="{{ url_for('static', filename='images/f1.jpeg') }}" alt="placeholder">
                 <h4>Eternal Blush</h4>
                 <p>Price: $80</p>
                 <span class="label">Popular pick</span>
+                <div class="quantity-wrapper">
+                    <label for="qty1">Qty:</label>
+                    <input type="number" id="qty1" min="1" value="1">
+                </div>
+                <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
             <div class="catalog-item popular">
-                <img src="images/f2.jpeg" alt="placeholder">
+                <img src="{{ url_for('static', filename='images/f2.jpeg') }}" alt="placeholder">
                 <h4>Bohemian Rhapsody</h4>
                 <p>Price: $75</p>
                 <span class="label">Popular pick</span>
+                <div class="quantity-wrapper">
+                    <label for="qty2">Qty:</label>
+                    <input type="number" id="qty2" min="1" value="1">
+                </div>
+                <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
             <div class="catalog-item popular">
-                <img src="images/f8.jpeg" alt="placeholder">
+                <img src="{{ url_for('static', filename='images/f8.jpeg') }}" alt="placeholder">
                 <h4>Summer Solstice</h4>
                 <p>Price: $75</p>
                 <span class="label">Popular pick</span>
+                <div class="quantity-wrapper">
+                    <label for="qty3">Qty:</label>
+                    <input type="number" id="qty3" min="1" value="1">
+                </div>
+                <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
             <div class="catalog-item">
-                <img src="images/f6.jpeg" alt="placeholder">
+                <img src="{{ url_for('static', filename='images/f6.jpeg') }}" alt="placeholder">
                 <h4>Cotton Candy Dream</h4>
                 <p>Price: $72</p>
+                <div class="quantity-wrapper">
+                    <label for="qty4">Qty:</label>
+                    <input type="number" id="qty4" min="1" value="1">
+                </div>
+                <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
             <div class="catalog-item">
-                <img src="images/f7.jpeg" alt="placeholder">
+                <img src="{{ url_for('static', filename='images/f7.jpeg') }}" alt="placeholder">
                 <h4>Pearl Symphony</h4>
                 <p>Price: $72</p>
+                <div class="quantity-wrapper">
+                    <label for="qty5">Qty:</label>
+                    <input type="number" id="qty5" min="1" value="1">
+                </div>
+                <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
             <div class="catalog-item">
-                <img src="images/f9.jpeg" alt="placeholder">
+                <img src="{{ url_for('static', filename='images/f9.jpeg') }}" alt="placeholder">
                 <h4>Confetti Blooms</h4>
                 <p>Price: $72</p>
+                <div class="quantity-wrapper">
+                    <label for="qty6">Qty:</label>
+                    <input type="number" id="qty6" min="1" value="1">
+                </div>
+                <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
         </div>
     </section>
@@ -120,7 +150,7 @@
     <section id="contact" class="contact">
         <h2>Contact Us</h2>
         <p>Have questions or want to order a custom bouquet? Reach out to us!</p>
-        <form class="contact-form">
+        <form class="contact-form" action="/contact" method="POST">
             <input type="text" name="name" placeholder="Your Name" required />
             <input type="email" name="email" placeholder="Your Email" required />
             <input type="text" name="bouquet" placeholder="Bouquet Name / Type" required />
