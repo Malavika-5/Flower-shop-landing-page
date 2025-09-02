@@ -26,12 +26,12 @@
         <a class="nav-brand" href="#">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo" id="logo" />
         </a>
-
         <nav id="nav-bar" class="nav-bar">
             <ul class="menu">
                 <li><a class="nav-link" href="#aboutus">About Us</a></li>
                 <li><a class="nav-link" href="#catalog">Catalog</a></li>
                 <li><a class="nav-link" href="#contact">Contact</a></li>
+                <li><a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart</a></li>
             </ul>
         </nav>
     </header>
