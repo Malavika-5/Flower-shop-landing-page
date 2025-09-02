@@ -703,24 +703,60 @@ li {
     background: var(--cream);
 }
 
+/* Container for the checkout section */
 .order-container {
     display: flex;
     gap: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 2rem 1rem;
 }
 
-/* Left: Info */
-.order-info {
-    flex: 2;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    overflow-y: auto;
-    max-height: 80vh;
-    /* scroll only left side */
-    padding-right: 1rem;
+
+/* Right side - summary */
+.order-summary {
+    flex: 1;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 20px;
+    /* stays visible while scrolling */
+    height: fit-content;
 }
+
+/* Style each summary item */
+.order-summary .summary-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.order-summary .summary-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.order-summary .summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    margin-top: 1rem;
+}
+
+/* Scrollbar styling for form */
+.order-info::-webkit-scrollbar {
+    width: 8px;
+}
+
+.order-info::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
 
 .order-step {
     background: #fff;
@@ -794,40 +830,133 @@ li {
 }
 
 
+/* Accordion container */
+.order-info {
+    flex: 2;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding-right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Each step */
 .step {
     border: 1px solid #ddd;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    overflow: hidden;
+    border-radius: 8px;
+    overflow: visible;
+    background-color: #fff;
+    transition: box-shadow 0.3s ease;
 }
 
+/* Step heading */
 .step h3 {
     margin: 0;
-    padding: 15px;
-    background: #f9f9f9;
+    padding: 1rem 1.2rem;
+    background-color: var(--primary);
+    color: white;
+    font-family: var(--font-heading);
+    font-weight: var(--bold);
     cursor: pointer;
+    transition: background 0.3s ease;
 }
 
+/* Step heading hover */
+.step h3:hover {
+    background-color: #28544b;
+}
+
+/* Step content */
 .step-content {
     display: none;
-    padding: 15px;
+    /* hidden by default */
+    padding: 1rem 1.2rem;
+    background-color: #fdfcf8;
 }
 
+/* Active step */
 .step.active .step-content {
     display: block;
 }
 
-button {
-    display: block;
-    margin-top: 10px;
-    padding: 10px;
-    width: 100%;
-    background: black;
+/* Active heading styling */
+.step.active h3 {
+    background-color: var(--gold);
+    color: #fff;
+}
+
+.btn-continue {
+    background-color: var(--gold);
     color: white;
     border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 999px;
+    font-weight: 600;
     cursor: pointer;
-    font-weight: bold;
+    transition: background 0.3s ease;
+    margin-top: 1rem;
 }
+
+.btn-continue:hover {
+    background-color: #a6783c;
+}
+
+.step-content .form-group {
+    margin-bottom: 1rem;
+}
+
+.step-content input,
+.step-content textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+}
+
+.progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.progress-step {
+    text-align: center;
+    flex: 1;
+    position: relative;
+    color: #888;
+}
+
+.progress-step.active {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.progress-step.completed {
+    color: var(--gold);
+}
+
+.progress-step::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    right: -50%;
+    height: 2px;
+    width: 100%;
+    background: #ddd;
+    z-index: -1;
+}
+
+.progress-step:last-child::after {
+    display: none;
+}
+
+.progress-step.completed::after {
+    background: var(--gold);
+}
+
 
 
 
