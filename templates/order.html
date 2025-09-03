@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Flower Shop</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Open+Sans:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="preload"
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans:wght@400;600&display=swap"
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans:wght@400;600&display=swap">
+    </noscript>
+</head>
+
+<body>
+    <header>
+        <a class="nav-brand" href="{{ url_for('home') }}#">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo" id="logo" />
+        </a>
+
+        <nav id="nav-bar" class="nav-bar">
+            <ul class="menu">
+                <li><a class="nav-link" href="{{ url_for('home') }}#aboutus">About Us</a></li>
+                <li><a class="nav-link" href="{{ url_for('home') }}#catalog">Catalog</a></li>
+                <li><a class="nav-link" href="{{ url_for('home') }}#contact">Contact</a></li>
+
+                <li><a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart</a></li>
+
+            </ul>
+        </nav>
+    </header>
+
+    <section class="order-section">
+        <div class="order-container">
+            <!-- LEFT SIDE - Order Form -->
+            <div class="order-info">
+                <div class="progress-indicator">
+                    <div class="progress-step active" id="step-1">
+                        <div class="step-number">1</div>
+                        <div>Email</div>
+                    </div>
+                    <div class="progress-step" id="step-2">
+                        <div class="step-number">2</div>
+                        <div>Delivery</div>
+                    </div>
+                    <div class="progress-step" id="step-3">
+                        <div class="step-number">3</div>
+                        <div>Payment</div>
+                    </div>
+                    <div class="progress-step" id="step-4">
+                        <div class="step-number">4</div>
+                        <div>Review</div>
+                    </div>
+                </div>
+
+                <div class="step active" id="emailStep">
+                    <h3>Your Email</h3>
+                    <div class="step-content">
+                        <div class="form-group">
+                            <label for="emailInput">Email address</label>
+                            <input type="email" id="emailInput" placeholder="Enter your email" required>
+                        </div>
+                        <button class="btn-continue" onclick="goToStep(2)">Continue</button>
+                    </div>
+                </div>
+
+                <div class="step" id="deliveryStep">
+                    <h3>Delivery Information</h3>
+                    <div class="step-content">
+                        <div class="form-group">
+                            <label for="fullname">Full Name</label>
+                            <input type="text" id="fullname" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Delivery Address</label>
+                            <textarea id="address" rows="3" placeholder="Enter your delivery address"
+                                required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" placeholder="Enter your phone number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="instructions">Delivery Instructions (Optional)</label>
+                            <textarea id="instructions" rows="2"
+                                placeholder="Any special delivery instructions"></textarea>
+                        </div>
+                        <button class="btn-continue" onclick="goToStep(3)">Continue</button>
+                    </div>
+                </div>
+
+                <div class="step" id="paymentStep">
+                    <h3>Payment Method</h3>
+                    <div class="step-content">
+                        <div class="form-group">
+                            <label for="cardname">Name on Card</label>
+                            <input type="text" id="cardname" placeholder="Enter name as shown on card" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cardnumber">Card Number</label>
+                            <input type="text" id="cardnumber" placeholder="Enter your card number" required>
+                        </div>
+                        <div class="form-group" style="display: flex; gap: 1rem;">
+                            <div style="flex: 1;">
+                                <label for="expiry">Expiry Date</label>
+                                <input type="text" id="expiry" placeholder="MM/YY" required>
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="cvv">CVV</label>
+                                <input type="text" id="cvv" placeholder="CVV" required>
+                            </div>
+                        </div>
+                        <button class="btn-continue" onclick="goToStep(4)">Continue</button>
+                    </div>
+                </div>
+
+                <div class="step" id="reviewStep">
+                    <h3>Review & Confirm Order</h3>
+                    <div class="step-content">
+                        <div class="form-group">
+                            <h4>Contact Information</h4>
+                            <p>Email: <span id="reviewEmail"></span></p>
+                        </div>
+                        <div class="form-group">
+                            <h4>Delivery Information</h4>
+                            <p>Name: <span id="reviewName"></span></p>
+                            <p>Address: <span id="reviewAddress"></span></p>
+                            <p>Phone: <span id="reviewPhone"></span></p>
+                        </div>
+                        <div class="form-group">
+                            <h4>Payment Information</h4>
+                            <p>Card: **** **** **** <span id="reviewCardLast4"></span></p>
+                        </div>
+                        <button class="checkout-btn" onclick="confirmOrder()">Confirm Order</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE - Order Summary -->
+            <div class="order-summary">
+                <h3>Order Summary</h3>
+
+                <div class="summary-item">
+                    <img src="{{ url_for('static', filename='images/f1.jpeg') }}" alt="Eternal Blush">
+                    <div>
+                        <p><strong>Eternal Blush</strong></p>
+                        <p>$80.00 × 1</p>
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <img src="{{ url_for('static', filename='images/f2.jpeg') }}" alt="Bohemian Rhapsody">
+                    <div>
+                        <p><strong>Bohemian Rhapsody</strong></p>
+                        <p>$75.00 × 1</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="summary-item">
+                    <div>Subtotal</div>
+                    <div>$155.00</div>
+                </div>
+
+                <div class="summary-item">
+                    <div>Delivery Fee</div>
+                    <div>$10.00</div>
+                </div>
+
+                <div class="summary-item">
+                    <div>Tax</div>
+                    <div>$13.95</div>
+                </div>
+
+                <div class="summary-total">
+                    <div>Total</div>
+                    <div>$178.95</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Initialize the form with the first section open
+        document.addEventListener('DOMContentLoaded', function () {
+            // All sections are initially hidden except the first one
+            const sections = document.querySelectorAll('.step');
+            sections.forEach((section, index) => {
+                if (index !== 0) {
+                    section.classList.remove('active');
+                }
+            });
+        });
+
+        function goToStep(stepNumber) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.step');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show the selected section
+            document.getElementById(getSectionId(stepNumber)).classList.add('active');
+
+            // Update progress indicator
+            updateProgressIndicator(stepNumber);
+
+            // If going to review step, populate summary
+            if (stepNumber === 4) {
+                document.getElementById("reviewEmail").textContent = document.getElementById("emailInput").value;
+                document.getElementById("reviewName").textContent = document.getElementById("fullname").value;
+                document.getElementById("reviewAddress").textContent = document.getElementById("address").value;
+                document.getElementById("reviewPhone").textContent = document.getElementById("phone").value;
+
+                const cardNumber = document.getElementById("cardnumber").value;
+                if (cardNumber.length > 4) {
+                    document.getElementById("reviewCardLast4").textContent = cardNumber.slice(-4);
+                }
+            }
+        }
+
+        function getSectionId(stepNumber) {
+            switch (stepNumber) {
+                case 1: return 'emailStep';
+                case 2: return 'deliveryStep';
+                case 3: return 'paymentStep';
+                case 4: return 'reviewStep';
+                default: return 'emailStep';
+            }
+        }
+
+        function updateProgressIndicator(currentStep) {
+            const steps = document.querySelectorAll('.progress-step');
+
+            steps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+
+                if (index + 1 < currentStep) {
+                    step.classList.add('completed');
+                } else if (index + 1 === currentStep) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        function confirmOrder() {
+            alert('Order completed successfully! Thank you for your purchase.');
+            // Here you would typically submit the form to your Flask backend
+        }
+    </script>
+
+
+</body>
+
+</html>

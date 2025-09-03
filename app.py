@@ -2,12 +2,25 @@ from flask import Flask, request, render_template, jsonify
 
 app = Flask(__name__)
 
-# Homepage
+# Homepage (currently just a test)
 @app.route('/')
 def home():
     return render_template('index.html')
 
+
+@app.route('/cart')
+def cart():
+    return render_template('cart.html')
+
+
+@app.route('/order')
+def order():
+    return render_template('order.html')
+
+
 # Contact form submission
+
+
 @app.route('/contact', methods=['POST'])
 def contact():
     name = request.form.get('name')
@@ -19,22 +32,6 @@ def contact():
     print(f"📩 New Contact - Name: {name}, Email: {email}, Bouquet: {bouquet}, Message: {message}")
 
     return jsonify({"status": "success", "message": "Your message has been received!"})
-
-# Route to serve a catalog page if you want a separate catalog
-@app.route('/catalog')
-def catalog():
-    return render_template('index.html')  # Or a separate catalog.html if you have one
-
-# Route for about page
-@app.route('/about')
-def about():
-    return render_template('index.html')  # Or a separate about.html if you have one
-
-#route for cart
-
-@app.route('/cart')
-def cart():
-    return render_template('cart.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
