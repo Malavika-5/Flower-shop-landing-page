@@ -2,27 +2,12 @@ from flask import Flask, request, render_template, jsonify
 
 app = Flask(__name__)
 
-# Homepage (currently just a test)
-
-
+# Homepage
 @app.route('/')
 def home():
     return render_template('index.html')
 
-
-@app.route('/cart')
-def cart():
-    return render_template('cart.html')
-
-
-@app.route('/order')
-def order():
-    return render_template('order.html')
-
-
 # Contact form submission
-
-
 @app.route('/contact', methods=['POST'])
 def contact():
     name = request.form.get('name')
@@ -35,6 +20,41 @@ def contact():
 
     return jsonify({"status": "success", "message": "Your message has been received!"})
 
+# Route to serve a catalog page if you want a separate catalog
+@app.route('/catalog')
+def catalog():
+    return render_template('index.html')  # Or a separate catalog.html if you have one
 
+# Route for about page
+@app.route('/about')
+def about():
+    return render_template('index.html')  # Or a separate about.html if you have one
+
+#route for cart
+
+@app.route('/cart')
+def cart():
+    return render_template('cart.html')
+
+#route for order
+@app.route('/order', methods=['POST'])
+def submit_order():
+    data = request.get_json()
+    email = data.get('email')
+    fullname = data.get('fullname')
+    address = data.get('address')
+    phone = data.get('phone')
+    instructions = data.get('instructions')
+    cardname = data.get('cardname')
+    cardnumber = data.get('cardnumber')
+    expiry = data.get('expiry')
+    cvv = data.get('cvv')
+    # You can add more fields as needed
+
+    # For now, just print the order (add DB/email logic later)
+    print(f"🛒 New Order - Email: {email}, Name: {fullname}, Address: {address}, Phone: {phone}")
+
+    return jsonify({"status": "success", "message": "Order received!"})
+    
 if __name__ == '__main__':
     app.run(debug=True)

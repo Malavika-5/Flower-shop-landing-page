@@ -254,8 +254,35 @@
         }
 
         function confirmOrder() {
-            alert('Order completed successfully! Thank you for your purchase.');
-            // Here you would typically submit the form to your Flask backend
+            // Gather form data
+            const orderData = {
+                email: document.getElementById("emailInput").value,
+                fullname: document.getElementById("fullname").value,
+                address: document.getElementById("address").value,
+                phone: document.getElementById("phone").value,
+                instructions: document.getElementById("instructions").value,
+                cardname: document.getElementById("cardname").value,
+                cardnumber: document.getElementById("cardnumber").value,
+                expiry: document.getElementById("expiry").value,
+                cvv: document.getElementById("cvv").value
+            };
+
+            fetch("/order", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                alert(result.message);
+                // Optionally, redirect or reset the form here
+            })
+            .catch(error => {
+                alert("There was an error submitting your order.");
+                console.error(error);
+            });
         }
     </script>
 
