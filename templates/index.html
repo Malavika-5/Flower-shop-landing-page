@@ -77,7 +77,8 @@
             available on all of our best-selling flowers. Some can be delivered within hours of ordering.
         </p>
         <div class="catalog-grid">
-            <div class="catalog-item popular">
+            <div class="catalog-item popular" data-product-id="1" data-name="Eternal Blush" data-price="80"
+                data-label="Popular pick">
                 <img src="{{ url_for('static', filename='images/f1.jpeg') }}" alt="placeholder">
                 <h4>Eternal Blush</h4>
                 <p>Price: $80</p>
@@ -89,7 +90,8 @@
                 <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
-            <div class="catalog-item popular">
+            <div class="catalog-item popular" data-product-id="2" data-name="Bohemian Rhapsody" data-price="75"
+                data-label="Popular pick">
                 <img src="{{ url_for('static', filename='images/f2.jpeg') }}" alt="placeholder">
                 <h4>Bohemian Rhapsody</h4>
                 <p>Price: $75</p>
@@ -101,7 +103,8 @@
                 <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
-            <div class="catalog-item popular">
+            <div class="catalog-item popular" data-product-id="3" data-name="Summer Solstice" data-price="75"
+                data-label="Popular pick">
                 <img src="{{ url_for('static', filename='images/f8.jpeg') }}" alt="placeholder">
                 <h4>Summer Solstice</h4>
                 <p>Price: $75</p>
@@ -113,7 +116,7 @@
                 <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
-            <div class="catalog-item">
+            <div class="catalog-item" data-product-id="4" data-name="Cotton Candy Dream" data-price="72">
                 <img src="{{ url_for('static', filename='images/f6.jpeg') }}" alt="placeholder">
                 <h4>Cotton Candy Dream</h4>
                 <p>Price: $72</p>
@@ -124,7 +127,7 @@
                 <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
-            <div class="catalog-item">
+            <div class="catalog-item" data-product-id="5" data-name="Pearl Symphony" data-price="72">
                 <img src="{{ url_for('static', filename='images/f7.jpeg') }}" alt="placeholder">
                 <h4>Pearl Symphony</h4>
                 <p>Price: $72</p>
@@ -135,7 +138,7 @@
                 <button class="hero-button add-to-cart">Add to Cart</button>
             </div>
 
-            <div class="catalog-item">
+            <div class="catalog-item" data-product-id="6" data-name="Confetti Blooms" data-price="72">
                 <img src="{{ url_for('static', filename='images/f9.jpeg') }}" alt="placeholder">
                 <h4>Confetti Blooms</h4>
                 <p>Price: $72</p>
@@ -191,6 +194,39 @@
 
         <p class="footer-bottom">© 2025 FlowerLover</p>
     </footer>
+
+    <script>
+        document.querySelectorAll('.add-to-cart').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                // Change button text and disable
+                btn.textContent = 'Added to Cart';
+                btn.disabled = true;
+
+                // Get product info
+                const item = btn.closest('.catalog-item');
+                const product_id = item.getAttribute('data-product-id');
+                const name = item.getAttribute('data-name');
+                const price = item.getAttribute('data-price');
+                const label = item.getAttribute('data-label');
+                const qty = item.querySelector('input[type="number"]').value;
+
+                // Send to backend (Flask) via fetch
+                fetch('/add_to_cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_id: product_id,
+                        name: name,
+                        price: price,
+                        label: label,
+                        qty: qty
+                    })
+                });
+            });
+        });
+    </script>
 
 </body>
 
