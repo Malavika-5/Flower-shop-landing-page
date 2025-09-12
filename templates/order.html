@@ -140,7 +140,7 @@
                             <h4>Payment Information</h4>
                             <p>Card: **** **** **** <span id="reviewCardLast4"></span></p>
                         </div>
-                        <button class="checkout-btn" onclick="confirmOrder()">Confirm Order</button>
+                        <button class="checkout-btn" onclick="submitOrder()">Confirm Order</button>
                     </div>
                 </div>
             </div>
@@ -253,7 +253,7 @@
             });
         }
 
-        function confirmOrder() {
+        function submitOrder() {
             // Gather form data
             const orderData = {
                 email: document.getElementById("emailInput").value,
