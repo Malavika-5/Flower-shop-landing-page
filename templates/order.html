@@ -254,7 +254,6 @@
         }
 
         function submitOrder() {
-            // Gather form data
             const orderData = {
                 email: document.getElementById("emailInput").value,
                 fullname: document.getElementById("fullname").value,
@@ -269,18 +268,16 @@
 
             fetch("/order", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(orderData)
             })
             .then(response => response.json())
             .then(result => {
                 alert(result.message);
-                // Optionally, redirect or reset the form here
+                // Optionally reset the form or redirect
             })
             .catch(error => {
-                alert("There was an error submitting your order.");
+                alert("Error submitting order.");
                 console.error(error);
             });
         }
