@@ -1,7 +1,25 @@
 from flask import Flask, request, render_template, jsonify, session
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Replace with a strong secret in production
+
+# Load environment variables from .env
+load_dotenv()
+
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_NAME = os.getenv('DB_NAME')
+
+# MySQL connection string
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
 
 # Homepage
 @app.route('/')
