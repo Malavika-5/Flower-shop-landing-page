@@ -535,6 +535,7 @@ li {
 .cart-section {
     padding: 60px 20px;
     background: #f9fafb;
+    margin-top: auto;
     /* same soft background */
 }
 
