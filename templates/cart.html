@@ -48,8 +48,8 @@
         </div>
     </section> -->
 
+    {% if no_cart_items %}
     <section class="cart-section-empty">
-        {% if no_cart_items %}
         <div class="container-empty">
             <h2>Your Shopping Cart</h2>
             <div class="cart-items-empty" id="cart-items-empty">
@@ -57,9 +57,8 @@
             </div>
             <a href="{{ url_for('home') }}#catalog" class="hero-button">View our flowers →</a>
         </div>
-        {% else %}
     </section>
-
+    {% else %}
     <section class="cart-section">
         <div class="container">
             <h2>Your Shopping Cart</h2>
@@ -87,8 +86,8 @@
         </div>
     </section>
     {% endif %}
-    </div>
-    </section>
+
+
 
 
     <!-- Script inside HTML -->
