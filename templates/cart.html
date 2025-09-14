@@ -65,16 +65,16 @@
             <div class="cart-items">
                 {% for item in cart_items %}
                 <div class="cart-item">
-                    <img src="{{ url_for('static', filename='images/f1.jpeg') }}" alt="placeholder">
+                    <img src="{{ url_for('static', filename='images/' ~ item.image) }}" alt="{{ item.name }}">
                     <div class="cart-item-details">
                         <h4>{{ item.name }}</h4>
                         <p>Price: ${{ item.price }}</p>
                         <span class="label">{{ item.label }}</span>
                         <div class="quantity-wrapper">
                             <label for="qty1">Qty:</label>
-                            <input type="number" id="qty1" min="1" value="1">
+                            <input type="number" id="qty1{{ loop.index }}" min="1" value="{{ item.qty }}">
                         </div>
-                        <button class="remove-btn">Remove</button>
+                        <button class="remove-btn" data-id="{{ item.id }}">Remove</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -114,6 +114,38 @@
                             document.getElementById("cart-count").innerText = data.cart_count;
                         });
                 });
+            });
+        });
+
+        document.querySelectorAll('.remove-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const productId = btn.getAttribute('data-id');
+                fetch('/remove_from_cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Reload the page to update cart
+                        location.reload();
+                    });
+            });
+        });
+
+        document.querySelectorAll('.quantity-wrapper input[type="number"]').forEach(function (input) {
+            input.addEventListener('change', function () {
+                const productId = input.closest('.cart-item-details').querySelector('.remove-btn').getAttribute('data-id');
+                const newQty = input.value;
+                fetch('/update_cart_qty', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId, qty: newQty })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        location.reload(); // Reload to update total price
+                    });
             });
         });
     </script>
