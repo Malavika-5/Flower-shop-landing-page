@@ -13,11 +13,17 @@ def home():
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     data = request.get_json()
-    product_id = data.get('product_id')
-    # Initialize cart in session if not present
+    # Store all product info, not just product_id
+    product = {
+        'id': data.get('product_id'),
+        'name': data.get('name'),
+        'price': data.get('price'),
+        'label': data.get('label'),
+        'qty': int(data.get('qty', 1))
+    }
     if 'cart' not in session:
         session['cart'] = []
-    session['cart'].append(product_id)
+    session['cart'].append(product)
     session.modified = True
     return jsonify({'status': 'success'})
 
