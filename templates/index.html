@@ -31,7 +31,8 @@
                 <li><a class="nav-link" href="{{ url_for('home') }}#aboutus">About Us</a></li>
                 <li><a class="nav-link" href="{{ url_for('home') }}#catalog">Catalog</a></li>
                 <li><a class="nav-link" href="{{ url_for('home') }}#contact">Contact</a></li>
-                <li><a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart</a></li>
+                <li><a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart <span
+                            id="cart-count">0</span></a></li>
 
             </ul>
         </nav>
@@ -201,10 +202,6 @@
     <script>
         document.querySelectorAll('.add-to-cart').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                // Change button text and disable
-                btn.textContent = 'Added to Cart';
-                btn.disabled = true;
-
                 // Get product info
                 const item = btn.closest('.catalog-item');
                 const product_id = item.getAttribute('data-product-id');
@@ -228,11 +225,23 @@
                         qty: qty,
                         image: image
                     })
-                });
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update cart count badge
+                        document.getElementById('cart-count').textContent = data.cart_count;
+                        // Change button to "Go to Cart"
+                        btn.textContent = 'Go to Cart';
+                        btn.disabled = false;
+
+                        // Remove all event listeners by replacing the button
+                        const newBtn = btn.cloneNode(true);
+                        btn.parentNode.replaceChild(newBtn, btn);
+                        newBtn.onclick = function () { window.location.href = '/cart'; };
+                    });
             });
         });
     </script>
-
 </body>
 
 </html>
