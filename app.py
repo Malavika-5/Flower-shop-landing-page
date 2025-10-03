@@ -10,6 +10,7 @@ def home():
     return render_template('index.html')
 
 
+# In app.py
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     data = request.get_json()
@@ -17,7 +18,6 @@ def add_to_cart():
     qty = int(data.get('qty', 1))
     if 'cart' not in session:
         session['cart'] = []
-    # Check if product already in cart
     for item in session['cart']:
         if str(item['id']) == str(product_id):
             item['qty'] += qty
@@ -33,7 +33,9 @@ def add_to_cart():
         }
         session['cart'].append(product)
     session.modified = True
-    return jsonify({'status': 'success'})
+    # Return the new cart count
+    cart_count = sum(item['qty'] for item in session['cart'])
+    return jsonify({'status': 'success', 'cart_count': cart_count})
 
 
 @app.route('/update_cart_qty', methods=['POST'])
