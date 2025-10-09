@@ -148,44 +148,37 @@
             <!-- RIGHT SIDE - Order Summary -->
             <div class="order-summary">
                 <h3>Order Summary</h3>
-
+                {% if cart_items %}
+                {% for item in cart_items %}
                 <div class="summary-item">
-                    <img src="{{ url_for('static', filename='images/f1.jpeg') }}" alt="Eternal Blush">
+                    <img src="{{ url_for('static', filename='images/' ~ item.image) }}" alt="{{ item.name }}"
+                        width="60">
                     <div>
-                        <p><strong>Eternal Blush</strong></p>
-                        <p>$80.00 × 1</p>
+                        <p><strong>{{ item.name }}</strong></p>
+                        <p>${{ item.price }} × {{ item.qty }}</p>
                     </div>
                 </div>
-
-                <div class="summary-item">
-                    <img src="{{ url_for('static', filename='images/f2.jpeg') }}" alt="Bohemian Rhapsody">
-                    <div>
-                        <p><strong>Bohemian Rhapsody</strong></p>
-                        <p>$75.00 × 1</p>
-                    </div>
-                </div>
-
+                {% endfor %}
                 <hr>
-
                 <div class="summary-item">
                     <div>Subtotal</div>
-                    <div>$155.00</div>
+                    <div>${{ '%.2f'|format(subtotal) }}</div>
                 </div>
-
                 <div class="summary-item">
                     <div>Delivery Fee</div>
-                    <div>$10.00</div>
+                    <div>${{ '%.2f'|format(delivery_fee) }}</div>
                 </div>
-
                 <div class="summary-item">
                     <div>Tax</div>
-                    <div>$13.95</div>
+                    <div>${{ '%.2f'|format(tax) }}</div>
                 </div>
-
                 <div class="summary-total">
                     <div>Total</div>
-                    <div>$178.95</div>
+                    <div>${{ '%.2f'|format(total) }}</div>
                 </div>
+                {% else %}
+                <p>Your cart is empty.</p>
+                {% endif %}
             </div>
         </div>
     </section>
@@ -268,18 +261,18 @@
 
             fetch("/order", {
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(orderData)
             })
-            .then(response => response.json())
-            .then(result => {
-                alert(result.message);
-                // Optionally reset the form or redirect
-            })
-            .catch(error => {
-                alert("Error submitting order.");
-                console.error(error);
-            });
+                .then(response => response.json())
+                .then(result => {
+                    alert(result.message);
+                    // Optionally reset the form or redirect
+                })
+                .catch(error => {
+                    alert("Error submitting order.");
+                    console.error(error);
+                });
         }
     </script>
 
@@ -287,4 +280,3 @@
 </body>
 
 </html>
-
