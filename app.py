@@ -20,10 +20,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+
 class Product(db.Model):  # Renamed from Flower to Product
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=False)
+
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,41 +42,58 @@ class Order(db.Model):
     total = db.Column(db.Float)
 
 # Homepage
+
+
 @app.route('/')
 def home():
     return render_template('index.html')
 
 # Cart page
+
+
 @app.route('/cart')
 def cart():
     return render_template('cart.html')
 
 # Order page (GET)
+
+
 @app.route('/order')
 def order():
     return render_template('order.html')
 
 # Contact form submission
+
+
 @app.route('/contact', methods=['POST'])
 def contact():
     name = request.form.get('name')
     email = request.form.get('email')
     bouquet = request.form.get('bouquet')
     message = request.form.get('message')
-    print(f"📩 New Contact - Name: {name}, Email: {email}, Bouquet: {bouquet}, Message: {message}")
+    print(
+        f"📩 New Contact - Name: {name}, Email: {email}, Bouquet: {bouquet}, Message: {message}")
     return jsonify({"status": "success", "message": "Your message has been received!"})
 
 # Catalog page
+
+
 @app.route('/catalog')
 def catalog():
-    return render_template('index.html')  # Change to catalog.html if you have one
+    # Change to catalog.html if you have one
+    return render_template('index.html')
 
 # About page
+
+
 @app.route('/about')
 def about():
-    return render_template('index.html')  # Change to about.html if you have one
+    # Change to about.html if you have one
+    return render_template('index.html')
 
 # Cart API routes
+
+
 @app.route('/cart/add', methods=['POST'])
 def add_to_cart():
     item = request.get_json()
@@ -83,10 +102,12 @@ def add_to_cart():
     session['cart'] = cart
     return jsonify({"status": "success", "message": "Item added to cart!", "cart": cart})
 
+
 @app.route('/cart/items', methods=['GET'])
 def view_cart():
     cart = session.get('cart', [])
     return jsonify(cart)
+
 
 @app.route('/cart/remove', methods=['POST'])
 def remove_from_cart():
@@ -98,12 +119,15 @@ def remove_from_cart():
         return jsonify({"status": "success", "message": "Item removed", "removed": removed, "cart": cart})
     return jsonify({"status": "error", "message": "Invalid index"}), 400
 
+
 @app.route('/cart/clear', methods=['POST'])
 def clear_cart():
     session['cart'] = []
     return jsonify({"status": "success", "message": "Cart cleared"})
 
 # Order submission (POST)
+
+
 @app.route('/order', methods=['POST'])
 def submit_order():
     data = request.get_json()
@@ -125,5 +149,8 @@ def submit_order():
     session['cart'] = []
     return jsonify({"status": "success", "message": "Order received!"})
 
+
 if __name__ == '__main__':
+    # with app.app_context():   # Required for SQLAlchemy to know app context
+    #     db.create_all()
     app.run(debug=True)
