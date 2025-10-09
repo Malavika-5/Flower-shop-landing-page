@@ -1,29 +1,8 @@
 from flask import Flask, request, render_template, jsonify, session
-from flask_sqlalchemy import SQLAlchemy
-from dotenv import load_dotenv
-import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Replace with a strong secret in production
-
-# Load environment variables from .env
-load_dotenv()
-
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_HOST = os.getenv('DB_HOST')
-DB_NAME = os.getenv('DB_NAME')
-
-# MySQL connection string
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
-
-class Flower(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=False)
+app.secret_key = 'your_secret_key'
+# Homepage (currently just a test)
 
 
 
@@ -35,12 +14,27 @@ def home():
 # Cart page
 @app.route('/cart')
 def cart():
-    return render_template('cart.html')
+    cart_items = session.get('cart', [])
+    cart_total = sum(float(item['price']) * item.get('qty', 1)
+                     for item in cart_items) if cart_items else 0
+    no_cart_items = len(cart_items) == 0
+    return render_template('cart.html', cart_items=cart_items, cart_total=cart_total, no_cart_items=no_cart_items)
 
 # Order page (GET)
 @app.route('/order')
 def order():
-    return render_template('order.html')
+    cart_items = session.get('cart', [])
+    delivery_fee = 10.00
+    subtotal = sum(float(item['price']) * item.get('qty', 1)
+                   for item in cart_items)
+    tax = round(subtotal * 0.09, 2)
+    total = round(subtotal + delivery_fee + tax, 2)
+    return render_template('order.html',
+                           cart_items=cart_items,
+                           subtotal=subtotal,
+                           delivery_fee=delivery_fee,
+                           tax=tax,
+                           total=total)
 
 # Contact form submission
 @app.route('/contact', methods=['POST'])
@@ -109,3 +103,5 @@ def submit_order():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# temporary change to force merge
