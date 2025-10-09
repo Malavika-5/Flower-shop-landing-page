@@ -229,7 +229,8 @@
                     .then(response => response.json())
                     .then(data => {
                         // Update cart count badge
-                        document.getElementById('cart-count').textContent = data.cart_count;
+                        // After .then(data => { ... }) in both remove and quantity update:
+                        document.getElementById('cart-count').textContent = data.cart ? data.cart.reduce((sum, item) => sum + item.qty, 0) : 0;
                         // Change button to "Go to Cart"
                         btn.textContent = 'Go to Cart';
                         btn.disabled = false;

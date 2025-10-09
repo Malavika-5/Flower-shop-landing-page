@@ -54,14 +54,29 @@ def home():
 
 @app.route('/cart')
 def cart():
-    return render_template('cart.html')
+    cart_items = session.get('cart', [])
+    cart_total = sum(float(item['price']) * item.get('qty', 1)
+                     for item in cart_items) if cart_items else 0
+    no_cart_items = len(cart_items) == 0
+    return render_template('cart.html', cart_items=cart_items, cart_total=cart_total, no_cart_items=no_cart_items)
 
 # Order page (GET)
 
 
 @app.route('/order')
 def order():
-    return render_template('order.html')
+    cart_items = session.get('cart', [])
+    delivery_fee = 10.00
+    subtotal = sum(float(item['price']) * item.get('qty', 1)
+                   for item in cart_items)
+    tax = round(subtotal * 0.09, 2)
+    total = round(subtotal + delivery_fee + tax, 2)
+    return render_template('order.html',
+                           cart_items=cart_items,
+                           subtotal=subtotal,
+                           delivery_fee=delivery_fee,
+                           tax=tax,
+                           total=total)
 
 # Contact form submission
 
@@ -95,13 +110,43 @@ def about():
 # Cart API routes
 
 
-@app.route('/cart/add', methods=['POST'])
+@app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
-    item = request.get_json()
+    data = request.get_json()
+    product_id = data.get('product_id')
+    qty = int(data.get('qty', 1))
     cart = session.get('cart', [])
-    cart.append(item)
+    for item in cart:
+        if str(item['id']) == str(product_id):
+            item['qty'] += qty
+            break
+    else:
+        product = {
+            'id': product_id,
+            'name': data.get('name'),
+            'price': data.get('price'),
+            'label': data.get('label'),
+            'qty': qty,
+            'image': data.get('image')
+        }
+        cart.append(product)
     session['cart'] = cart
-    return jsonify({"status": "success", "message": "Item added to cart!", "cart": cart})
+    session.modified = True
+    return jsonify({"status": "success", "cart": cart})
+
+
+@app.route('/update_cart_qty', methods=['POST'])
+def update_cart_qty():
+    data = request.get_json()
+    product_id = data.get('product_id')
+    qty = int(data.get('qty', 1))
+    if 'cart' in session:
+        for item in session['cart']:
+            if str(item['id']) == str(product_id):
+                item['qty'] = qty
+                break
+        session.modified = True
+    return jsonify({"status": "success", "cart": session['cart']})
 
 
 @app.route('/cart/items', methods=['GET'])
@@ -110,21 +155,22 @@ def view_cart():
     return jsonify(cart)
 
 
-@app.route('/cart/remove', methods=['POST'])
+@app.route('/remove_from_cart', methods=['POST'])
 def remove_from_cart():
-    index = request.get_json().get('index')
+    data = request.get_json()
+    product_id = data.get('product_id')
     cart = session.get('cart', [])
-    if 0 <= index < len(cart):
-        removed = cart.pop(index)
-        session['cart'] = cart
-        return jsonify({"status": "success", "message": "Item removed", "removed": removed, "cart": cart})
-    return jsonify({"status": "error", "message": "Invalid index"}), 400
+    session['cart'] = [item for item in cart if str(
+        item['id']) != str(product_id)]
+    session.modified = True
+    return jsonify({"status": "success", "cart": session['cart']})
 
 
-@app.route('/cart/clear', methods=['POST'])
+@app.route('/clear_cart', methods=['POST'])
 def clear_cart():
     session['cart'] = []
-    return jsonify({"status": "success", "message": "Cart cleared"})
+    session.modified = True
+    return jsonify({"status": "success"})
 
 # Order submission (POST)
 
