@@ -41,6 +41,7 @@ class Order(db.Model):
     items = db.Column(db.Text)  # Store cart items as JSON string
     total = db.Column(db.Float)
 
+
 # Homepage
 
 
@@ -151,6 +152,6 @@ def submit_order():
 
 
 if __name__ == '__main__':
-    # with app.app_context():   # Required for SQLAlchemy to know app context
-    #     db.create_all()
+    with app.app_context():   # Required for SQLAlchemy to know app context
+        db.create_all()
     app.run(debug=True)
