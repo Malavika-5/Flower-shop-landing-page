@@ -18,29 +18,46 @@ DB_NAME = os.getenv('DB_NAME')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Debug: show DB URI for troubleshooting (remove in production)
+print("SQLALCHEMY_DATABASE_URI=", app.config.get('SQLALCHEMY_DATABASE_URI'))
 db = SQLAlchemy(app)
 
 
 class Product(db.Model):  # Renamed from Flower to Product
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Float, nullable=True)  # added price to avoid template errors
+
 
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    fullname = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    address = db.Column(db.String(200), nullable=False)
-    phone = db.Column(db.String(20), nullable=False)
-    instructions = db.Column(db.String(300))
-    cardname = db.Column(db.String(100))
-    cardnumber = db.Column(db.String(20))
-    expiry = db.Column(db.String(10))
-    cvv = db.Column(db.String(10))
-    items = db.Column(db.Text)  # Store cart items as JSON string
+    fullname = db.Column(db.String(100))
+    email = db.Column(db.String(100))
+    address = db.Column(db.String(200))
+    phone = db.Column(db.String(20))
+    items = db.Column(db.Text)
     total = db.Column(db.Float)
 
+
+class OrderItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)  # changed
+    quantity = db.Column(db.Integer, nullable=False)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+
+class Contact(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    bouquet = db.Column(db.String(100))
+    message = db.Column(db.Text)
 
 # Homepage
 
@@ -150,9 +167,8 @@ def update_cart_qty():
 
 
 @app.route('/cart/items', methods=['GET'])
-def view_cart():
-    cart = session.get('cart', [])
-    return jsonify(cart)
+def get_cart_items():
+    return jsonify(session.get('cart', []))
 
 
 @app.route('/remove_from_cart', methods=['POST'])
@@ -177,24 +193,20 @@ def clear_cart():
 
 @app.route('/order', methods=['POST'])
 def submit_order():
-    data = request.get_json()
+    data = request.get_json() or {}
+    # minimal: save order record (requires db.create_all run earlier)
     order = Order(
         fullname=data.get('fullname'),
         email=data.get('email'),
         address=data.get('address'),
         phone=data.get('phone'),
-        instructions=data.get('instructions'),
-        cardname=data.get('cardname'),
-        cardnumber=data.get('cardnumber'),
-        expiry=data.get('expiry'),
-        cvv=data.get('cvv'),
         items=str(session.get('cart', [])),
         total=data.get('total', 0)
     )
     db.session.add(order)
     db.session.commit()
     session['cart'] = []
-    return jsonify({"status": "success", "message": "Order received!"})
+    return jsonify({"status":"success","message":"Order received"})
 
 
 if __name__ == '__main__':
