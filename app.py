@@ -26,11 +26,12 @@ db = SQLAlchemy(app)
 class Product(db.Model):  # Renamed from Flower to Product
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=True)  # added price to avoid template errors
-
+    # added price to avoid template errors
+    price = db.Column(db.Float, nullable=True)
 
 
 class Order(db.Model):
+    __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
     fullname = db.Column(db.String(100))
     email = db.Column(db.String(100))
@@ -43,8 +44,10 @@ class Order(db.Model):
 class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)  # changed
+    product_id = db.Column(db.Integer, db.ForeignKey(
+        'product.id'), nullable=False)  # changed
     quantity = db.Column(db.Integer, nullable=False)
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -52,12 +55,18 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
 
+
 class Contact(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     bouquet = db.Column(db.String(100))
     message = db.Column(db.Text)
+
+
+class Order(db.Model):
+    __tablename__ = 'orders'  # instead of 'order'
+
 
 # Homepage
 
@@ -191,22 +200,38 @@ def clear_cart():
 # Order submission (POST)
 
 
+# ...existing code...
 @app.route('/order', methods=['POST'])
 def submit_order():
     data = request.get_json() or {}
-    # minimal: save order record (requires db.create_all run earlier)
+    print("DEBUG: received order JSON:", data)
+    print("DEBUG: session cart:", session.get('cart', []))
+    try:
+        total_val = float(data.get('total') or 0)
+    except (TypeError, ValueError):
+        total_val = 0.0
+
     order = Order(
         fullname=data.get('fullname'),
         email=data.get('email'),
         address=data.get('address'),
         phone=data.get('phone'),
         items=str(session.get('cart', [])),
-        total=data.get('total', 0)
+        total=total_val
     )
-    db.session.add(order)
-    db.session.commit()
-    session['cart'] = []
-    return jsonify({"status":"success","message":"Order received"})
+    try:
+        db.session.add(order)
+        db.session.commit()
+        session['cart'] = []
+        session.modified = True
+        return jsonify({"status": "success", "message": "Order received"})
+    except Exception as e:
+        import traceback
+        import sys
+        traceback.print_exc(file=sys.stderr)
+        db.session.rollback()
+        return jsonify({"status": "error", "message": "Server error saving order", "detail": str(e)}), 500
+# ...existing code...
 
 
 if __name__ == '__main__':

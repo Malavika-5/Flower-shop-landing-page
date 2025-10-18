@@ -199,6 +199,7 @@
         <p class="footer-bottom">© 2025 FlowerLover</p>
     </footer>
 
+
     <script>
         document.querySelectorAll('.add-to-cart').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -206,43 +207,41 @@
                 const item = btn.closest('.catalog-item');
                 const product_id = item.getAttribute('data-product-id');
                 const name = item.getAttribute('data-name');
-                const price = item.getAttribute('data-price');
-                const label = item.getAttribute('data-label');
-                const qty = item.querySelector('input[type="number"]').value;
-                const image = item.getAttribute('data-image');
+                const price = Number(item.getAttribute('data-price') || 0);
+                const label = item.getAttribute('data-label') || '';
+                const qtyInput = item.querySelector('input[type="number"]');
+                const qty = qtyInput ? Number(qtyInput.value || 1) : 1;
+                const image = item.getAttribute('data-image') || '';
 
-                // Send to backend (Flask) via fetch
+                const payload = {
+                    product_id: product_id,
+                    name: name,
+                    price: price,
+                    label: label,
+                    qty: qty,
+                    image: image
+                };
+
                 fetch('/add_to_cart', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        product_id: product_id,
-                        name: name,
-                        price: price,
-                        label: label,
-                        qty: qty,
-                        image: image
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 })
                     .then(response => response.json())
                     .then(data => {
-                        // Update cart count badge
-                        // After .then(data => { ... }) in both remove and quantity update:
-                        document.getElementById('cart-count').textContent = data.cart ? data.cart.reduce((sum, item) => sum + item.qty, 0) : 0;
-                        // Change button to "Go to Cart"
-                        btn.textContent = 'Go to Cart';
-                        btn.disabled = false;
-
-                        // Remove all event listeners by replacing the button
-                        const newBtn = btn.cloneNode(true);
-                        btn.parentNode.replaceChild(newBtn, btn);
-                        newBtn.onclick = function () { window.location.href = '/cart'; };
+                        // update cart count in UI (sum quantities)
+                        const cart = data.cart || [];
+                        const totalQty = cart.reduce((s, it) => s + (Number(it.qty) || 0), 0);
+                        const countEl = document.getElementById('cart-count');
+                        if (countEl) countEl.textContent = totalQty;
+                    })
+                    .catch(err => {
+                        console.error('Add to cart failed', err);
                     });
             });
         });
     </script>
+
 </body>
 
 </html>
