@@ -201,45 +201,50 @@
 
 
     <script>
-        document.querySelectorAll('.add-to-cart').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                // Get product info
-                const item = btn.closest('.catalog-item');
-                const product_id = item.getAttribute('data-product-id');
-                const name = item.getAttribute('data-name');
-                const price = Number(item.getAttribute('data-price') || 0);
-                const label = item.getAttribute('data-label') || '';
-                const qtyInput = item.querySelector('input[type="number"]');
-                const qty = qtyInput ? Number(qtyInput.value || 1) : 1;
-                const image = item.getAttribute('data-image') || '';
+        // ...existing code...
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.add-to-cart').forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    e.preventDefault(); // stop instant navigation
 
-                const payload = {
-                    product_id: product_id,
-                    name: name,
-                    price: price,
-                    label: label,
-                    qty: qty,
-                    image: image
-                };
+                    const btn = e.currentTarget;
+                    const item = btn.closest('.catalog-item') || btn.closest('[data-product-id]');
+                    if (!item) return;
 
-                fetch('/add_to_cart', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // update cart count in UI (sum quantities)
-                        const cart = data.cart || [];
-                        const totalQty = cart.reduce((s, it) => s + (Number(it.qty) || 0), 0);
-                        const countEl = document.getElementById('cart-count');
-                        if (countEl) countEl.textContent = totalQty;
+                    const payload = {
+                        product_id: item.getAttribute('data-product-id'),
+                        name: item.getAttribute('data-name') || item.querySelector('.name')?.textContent,
+                        price: Number(item.getAttribute('data-price') || 0),
+                        qty: Number(item.querySelector('input[type="number"]')?.value || 1),
+                        image: item.getAttribute('data-image') || ''
+                    };
+
+                    fetch('/add_to_cart', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
                     })
-                    .catch(err => {
-                        console.error('Add to cart failed', err);
-                    });
+                        .then(r => r.json())
+                        .then(data => {
+                            // Replace button with a normal anchor to /cart (avoid Jinja inside JS)
+                            const goEl = document.createElement('a');
+                            goEl.href = '/cart';           // use static path
+                            goEl.className = btn.className;
+                            goEl.textContent = 'Go to cart';
+                            btn.replaceWith(goEl);
+
+                            // update cart-count UI if present
+                            const totalQty = (data.cart || []).reduce((s, it) => s + (Number(it.qty) || 0), 0);
+                            const countEl = document.getElementById('cart-count');
+                            if (countEl) countEl.textContent = totalQty;
+                        })
+                        .catch(err => {
+                            console.error('Add to cart failed', err);
+                        });
+                });
             });
         });
+        // ...existing code...
     </script>
 
 </body>
