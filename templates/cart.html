@@ -4,21 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Flower Shop</title>
+    <title>The Flower Shop - Cart</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Open+Sans:wght@300;400;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="preload"
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans:wght@400;600&display=swap"
-        as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Open+Sans:wght@400;600&display=swap">
-    </noscript>
 </head>
 
 <body>
@@ -26,35 +13,13 @@
         <a class="nav-brand" href="{{ url_for('home') }}#">
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="logo" id="logo" />
         </a>
-
-        <nav id="nav-bar" class="nav-bar">
-            <ul class="menu">
-                <li><a class="nav-link" href="{{ url_for('home') }}#aboutus">About Us</a></li>
-                <li><a class="nav-link" href="{{ url_for('home') }}#catalog">Catalog</a></li>
-                <li><a class="nav-link" href="{{ url_for('home') }}#contact">Contact</a></li>
-                <li><a class="nav-link" href="{{ url_for('cart') }}"><i class="fas fa-shopping-cart"></i> Cart</a></li>
-
-            </ul>
-        </nav>
     </header>
-    <!--  
-    <section class="cart-section-empty">
-        <div class="container-empty">
-            <h2>Your Shopping Cart</h2>
-            <div class="cart-items-empty" id="cart-items-empty">
-                <p>Your cart is empty.</p>
-            </div>
-            <a href="{{ url_for('home') }}#catalog" class="hero-button">View our flowers →</a>
-        </div>
-    </section> -->
 
     {% if no_cart_items %}
     <section class="cart-section-empty">
         <div class="container-empty">
             <h2>Your Shopping Cart</h2>
-            <div class="cart-items-empty" id="cart-items-empty">
-                <p>Your cart is empty.</p>
-            </div>
+            <p>Your cart is empty.</p>
             <a href="{{ url_for('home') }}#catalog" class="hero-button">View our flowers →</a>
         </div>
     </section>
@@ -62,72 +27,123 @@
     <section class="cart-section">
         <div class="container">
             <h2>Your Shopping Cart</h2>
+
             <div class="cart-items">
                 {% for item in cart_items %}
-                <div class="cart-item">
-                    <img src="{{ url_for('static', filename='images/' ~ item.image) }}" alt="{{ item.name }}">
-                    <div class="cart-item-details">
-                        <h4>{{ item.name }}</h4>
-                        <p>Price: ${{ item.price }}</p>
-                        <span class="label">{{ item.label }}</span>
+                <div class="cart-item" data-product-id="{{ item.id }}">
+                    <img src="{{ url_for('static', filename='images/' ~ (item.image or 'placeholder.png')) }}"
+                        alt="{{ item.name }}" width="90" />
+                    <div class="item-info">
+                        <h4 class="item-name">{{ item.name }}</h4>
+                        <p class="item-price">${{ '%.2f'|format((item.price|float) or 0) }}</p>
+
                         <div class="quantity-wrapper">
-                            <label for="qty1">Qty:</label>
-                            <input type="number" id="qty1{{ loop.index }}" min="1" value="{{ item.qty }}">
+                            <label>Qty</label>
+                            <input type="number" min="1" class="qty-input" value="{{ item.qty }}" />
                         </div>
-                        <button class="remove-btn" data-id="{{ item.id }}">Remove</button>
+
+                        <button class="remove-btn">Remove</button>
                     </div>
                 </div>
                 {% endfor %}
             </div>
+
             <div class="cart-total">
-                <p>Total: <strong>${{ cart_total }}</strong></p>
-                <a href="{{ url_for('order') }}" class="hero-button">Checkout</a>
+                <div class="totals">
+                    <div class="line">
+                        <span>Subtotal</span>
+                        <span>${{ '%.2f'|format(cart_total) }}</span>
+                    </div>
+                    <!-- you can add delivery/tax rows here if needed -->
+                    <div class="line">
+                        <strong>Total</strong>
+                        <strong>${{ '%.2f'|format(cart_total) }}</strong>
+                    </div>
+                </div>
+
+                <div class="cart-actions">
+                    <a href="{{ url_for('order_page') }}" class="hero-button">Proceed to Checkout →</a>
+                    <button id="clear-cart-btn" class="hero-button secondary">Clear Cart</button>
+                </div>
             </div>
         </div>
     </section>
     {% endif %}
 
-
-
-
-    <!-- Script inside HTML -->
     <script>
-        // When page loads
-
-        document.querySelectorAll('.remove-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const productId = btn.getAttribute('data-id');
-                fetch('/remove_from_cart', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ product_id: productId })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Reload the page to update cart
-                        location.reload();
-                    });
+        // Attach handlers after DOM loads
+        document.addEventListener('DOMContentLoaded', function () {
+            // Remove item
+            document.querySelectorAll('.remove-btn').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    const itemEl = e.target.closest('.cart-item');
+                    const pid = itemEl?.dataset?.productId;
+                    if (!pid) return;
+                    fetch('/remove_from_cart', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ product_id: pid })
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                // simple: reload to re-render totals
+                                window.location.reload();
+                            } else {
+                                console.error('remove failed', data);
+                                alert('Failed to remove item.');
+                            }
+                        }).catch(err => {
+                            console.error(err);
+                            alert('Network error.');
+                        });
+                });
             });
-        });
 
-        document.querySelectorAll('.quantity-wrapper input[type="number"]').forEach(function (input) {
-            input.addEventListener('change', function () {
-                const productId = input.closest('.cart-item-details').querySelector('.remove-btn').getAttribute('data-id');
-                const newQty = input.value;
-                fetch('/update_cart_qty', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ product_id: productId, qty: newQty })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        location.reload(); // Reload to update total price
-                    });
+            // Update quantity
+            document.querySelectorAll('.qty-input').forEach(function (input) {
+                input.addEventListener('change', function (e) {
+                    const newQty = Number(e.target.value) || 1;
+                    if (newQty < 1) e.target.value = 1;
+                    const itemEl = e.target.closest('.cart-item');
+                    const pid = itemEl?.dataset?.productId;
+                    if (!pid) return;
+                    fetch('/update_cart_qty', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ product_id: pid, qty: newQty })
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                window.location.reload();
+                            } else {
+                                console.error('update failed', data);
+                                alert('Failed to update quantity.');
+                            }
+                        }).catch(err => {
+                            console.error(err);
+                            alert('Network error.');
+                        });
+                });
             });
+
+            // Clear cart
+            const clearBtn = document.getElementById('clear-cart-btn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    fetch('/clear_cart', { method: 'POST' })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'success') window.location.reload();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                        });
+                });
+            }
         });
     </script>
 </body>
-
-
 
 </html>
