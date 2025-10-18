@@ -1,33 +1,40 @@
+# ...existing code...
 from flask import Flask, request, render_template, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Replace with a strong secret in production
-
-# Load environment variables from .env
 load_dotenv()
+
+app = Flask(__name__)
+app.secret_key = os.getenv('FLASK_SECRET', 'dev_secret_key')
 
 DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 
-# MySQL connection string
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+# Prefer MySQL if env provided, fallback to SQLite for local dev
+if DB_USER and DB_PASSWORD and DB_HOST and DB_NAME:
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flowershop_dev.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Debug: show DB URI for troubleshooting (remove in production)
 print("SQLALCHEMY_DATABASE_URI=", app.config.get('SQLALCHEMY_DATABASE_URI'))
+
 db = SQLAlchemy(app)
 
+# Models
 
-class Product(db.Model):  # Renamed from Flower to Product
+
+class Product(db.Model):
+    __tablename__ = 'product'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    # added price to avoid template errors
     price = db.Column(db.Float, nullable=True)
+    # image = db.Column(db.String(200), nullable=True)
 
 
 class Order(db.Model):
@@ -39,7 +46,7 @@ class Order(db.Model):
     phone = db.Column(db.String(30))
     instructions = db.Column(db.String(500))
     cardname = db.Column(db.String(120))
-    # avoid storing raw card data in production
+    # Note: do NOT store raw card data in production
     cardnumber = db.Column(db.String(64))
     expiry = db.Column(db.String(20))
     cvv = db.Column(db.String(10))
@@ -49,49 +56,53 @@ class Order(db.Model):
 
 
 class OrderItem(db.Model):
+    __tablename__ = 'order_item'
     id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey(
+        'orders.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey(
-        'product.id'), nullable=False)  # changed
+        'product.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
 
 class User(db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
 
 
 class Contact(db.Model):
+    __tablename__ = 'contact'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     email = db.Column(db.String(100))
     message = db.Column(db.Text)
 
 
-class Order(db.Model):
-    __tablename__ = 'orders'  # instead of 'order'
-
-
-# Homepage
-
-
+# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Cart page
+
+@app.route('/catalog')
+def catalog():
+    return render_template('index.html')
+
+
+@app.route('/about')
+def about():
+    return render_template('index.html')
 
 
 @app.route('/cart')
 def cart():
     cart_items = session.get('cart', [])
-    cart_total = sum(float(item['price']) * item.get('qty', 1)
+    cart_total = sum(float(item.get('price', 0)) * int(item.get('qty', 1))
                      for item in cart_items) if cart_items else 0
     no_cart_items = len(cart_items) == 0
     return render_template('cart.html', cart_items=cart_items, cart_total=cart_total, no_cart_items=no_cart_items)
-
-# Order page (GET)
 
 
 @app.route('/order')
@@ -109,8 +120,6 @@ def order_page():
                            tax=tax,
                            total=total)
 
-# Contact form submission
-
 
 @app.route('/contact', methods=['POST'])
 def contact():
@@ -122,29 +131,11 @@ def contact():
         f"📩 New Contact - Name: {name}, Email: {email}, Bouquet: {bouquet}, Message: {message}")
     return jsonify({"status": "success", "message": "Your message has been received!"})
 
-# Catalog page
 
-
-@app.route('/catalog')
-def catalog():
-    # Change to catalog.html if you have one
-    return render_template('index.html')
-
-# About page
-
-
-@app.route('/about')
-def about():
-    # Change to about.html if you have one
-    return render_template('index.html')
-
-# Cart API routes
-
-
+# Cart API
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     data = request.get_json() or request.form or {}
-    # accept either product_id or id, and qty or quantity
     product_id = data.get('product_id') or data.get('id')
     try:
         qty = int(data.get('qty') or data.get('quantity') or 1)
@@ -153,7 +144,6 @@ def add_to_cart():
 
     cart = session.get('cart', [])
 
-    # normalize existing ids to string for reliable comparison
     found = False
     for item in cart:
         if str(item.get('id')) == str(product_id):
@@ -162,10 +152,14 @@ def add_to_cart():
             break
 
     if not found:
+        try:
+            price = float(data.get('price') or 0)
+        except (TypeError, ValueError):
+            price = 0.0
         product = {
             'id': product_id,
             'name': data.get('name') or data.get('title') or 'Product',
-            'price': data.get('price') or data.get('unit_price') or 0,
+            'price': price,
             'label': data.get('label'),
             'qty': qty,
             'image': data.get('image')
@@ -175,7 +169,6 @@ def add_to_cart():
     session['cart'] = cart
     session.modified = True
 
-    # debug log — remove in production
     print("ADD_TO_CART payload:", data)
     print("CURRENT CART:", cart)
 
@@ -184,16 +177,20 @@ def add_to_cart():
 
 @app.route('/update_cart_qty', methods=['POST'])
 def update_cart_qty():
-    data = request.get_json()
-    product_id = data.get('product_id')
-    qty = int(data.get('qty', 1))
-    if 'cart' in session:
-        for item in session['cart']:
-            if str(item['id']) == str(product_id):
-                item['qty'] = qty
-                break
-        session.modified = True
-    return jsonify({"status": "success", "cart": session['cart']})
+    data = request.get_json() or {}
+    product_id = data.get('product_id') or data.get('id')
+    try:
+        qty = int(data.get('qty', 1))
+    except (TypeError, ValueError):
+        qty = 1
+    cart = session.get('cart', [])
+    for item in cart:
+        if str(item.get('id')) == str(product_id):
+            item['qty'] = qty
+            break
+    session['cart'] = cart
+    session.modified = True
+    return jsonify({"status": "success", "cart": cart})
 
 
 @app.route('/cart/items', methods=['GET'])
@@ -203,13 +200,13 @@ def get_cart_items():
 
 @app.route('/remove_from_cart', methods=['POST'])
 def remove_from_cart():
-    data = request.get_json()
-    product_id = data.get('product_id')
+    data = request.get_json() or {}
+    product_id = data.get('product_id') or data.get('id')
     cart = session.get('cart', [])
-    session['cart'] = [item for item in cart if str(
-        item['id']) != str(product_id)]
+    cart = [item for item in cart if str(item.get('id')) != str(product_id)]
+    session['cart'] = cart
     session.modified = True
-    return jsonify({"status": "success", "cart": session['cart']})
+    return jsonify({"status": "success", "cart": cart})
 
 
 @app.route('/clear_cart', methods=['POST'])
@@ -218,29 +215,46 @@ def clear_cart():
     session.modified = True
     return jsonify({"status": "success"})
 
-# Order submission (POST)
 
-
-# ...existing code...
+# Order submission
 @app.route('/order', methods=['POST'])
 def submit_order():
     data = request.get_json() or {}
-    # minimal: save order record (requires db.create_all run earlier)
+    try:
+        total_val = float(data.get('total') or 0)
+    except (TypeError, ValueError):
+        total_val = 0.0
+
     order = Order(
-        fullname=data.get('fullname'),
-        email=data.get('email'),
-        address=data.get('address'),
-        phone=data.get('phone'),
+        fullname=data.get('fullname') or data.get('name') or 'Guest',
+        email=data.get('email') or '',
+        address=data.get('address') or '',
+        phone=data.get('phone') or '',
+        instructions=data.get('instructions') or '',
+        cardname=data.get('cardname'),
+        cardnumber=(data.get('cardnumber') or '')[:64],
+        expiry=data.get('expiry'),
+        cvv=(data.get('cvv') or '')[:10],
         items=str(session.get('cart', [])),
-        total=data.get('total', 0)
+        total=total_val
     )
-    db.session.add(order)
-    db.session.commit()
-    session['cart'] = []
-    return jsonify({"status": "success", "message": "Order received"})
+
+    try:
+        db.session.add(order)
+        db.session.commit()
+        session['cart'] = []
+        session.modified = True
+        return jsonify({"status": "success", "message": "Order received"})
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        import sys
+        traceback.print_exc(file=sys.stderr)
+        return jsonify({"status": "error", "message": "Server error saving order", "detail": str(e)}), 500
 
 
 if __name__ == '__main__':
-    with app.app_context():   # Required for SQLAlchemy to know app context
+    with app.app_context():
         db.create_all()
     app.run(debug=True)
+# ...existing code...
