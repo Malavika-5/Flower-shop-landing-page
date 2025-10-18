@@ -1,8 +1,8 @@
-# ...existing code...
 from flask import Flask, request, render_template, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import os
+import sys
 
 load_dotenv()
 
@@ -14,7 +14,6 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 
-# Prefer MySQL if env provided, fallback to SQLite for local dev
 if DB_USER and DB_PASSWORD and DB_HOST and DB_NAME:
     app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 else:
@@ -34,25 +33,28 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float, nullable=True)
-    # image = db.Column(db.String(200), nullable=True)
+    image = db.Column(db.String(200), nullable=True)
+
+
+class Customer(db.Model):
+    __tablename__ = 'customer'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=True)
+    email = db.Column(db.String(200), unique=True, nullable=True)
+    address = db.Column(db.String(400), nullable=True)
+    phone = db.Column(db.String(50), nullable=True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
 
 
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
-    fullname = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), nullable=False)
-    address = db.Column(db.String(300))
-    phone = db.Column(db.String(30))
-    instructions = db.Column(db.String(500))
-    cardname = db.Column(db.String(120))
-    # Note: do NOT store raw card data in production
-    cardnumber = db.Column(db.String(64))
-    expiry = db.Column(db.String(20))
-    cvv = db.Column(db.String(10))
-    items = db.Column(db.Text)
-    total = db.Column(db.Float)
+    customer_id = db.Column(db.Integer, db.ForeignKey(
+        'customer.id'), nullable=False)
+    total_price = db.Column(db.Float, nullable=False, default=0.0)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+    customer = db.relationship(
+        'Customer', backref=db.backref('orders', lazy=True))
 
 
 class OrderItem(db.Model):
@@ -60,27 +62,17 @@ class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey(
         'orders.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey(
-        'product.id'), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
+    product_id = db.Column(
+        db.Integer, db.ForeignKey('product.id'), nullable=True)
+    product_name = db.Column(db.String(300))
+    price = db.Column(db.Float, nullable=True)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    order = db.relationship('Order', backref=db.backref('items', lazy=True))
+    product = db.relationship('Product')
+
+# Routes (keep/adjust as needed)
 
 
-class User(db.Model):
-    __tablename__ = 'user'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True)
-    email = db.Column(db.String(120), unique=True)
-
-
-class Contact(db.Model):
-    __tablename__ = 'contact'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    email = db.Column(db.String(100))
-    message = db.Column(db.Text)
-
-
-# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -113,16 +105,12 @@ def order_page():
     delivery_fee = 0.0
     tax = 0.0
     total = subtotal + delivery_fee + tax
-    return render_template('order.html',
-                           cart_items=cart_items,
-                           subtotal=subtotal,
-                           delivery_fee=delivery_fee,
-                           tax=tax,
-                           total=total)
+    return render_template('order.html', cart_items=cart_items, subtotal=subtotal, delivery_fee=delivery_fee, tax=tax, total=total)
 
 
 @app.route('/contact', methods=['POST'])
 def contact():
+    # route left for compatibility; contact table removed
     name = request.form.get('name')
     email = request.form.get('email')
     bouquet = request.form.get('bouquet')
@@ -131,8 +119,9 @@ def contact():
         f"📩 New Contact - Name: {name}, Email: {email}, Bouquet: {bouquet}, Message: {message}")
     return jsonify({"status": "success", "message": "Your message has been received!"})
 
-
 # Cart API
+
+
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     data = request.get_json() or request.form or {}
@@ -141,37 +130,25 @@ def add_to_cart():
         qty = int(data.get('qty') or data.get('quantity') or 1)
     except (TypeError, ValueError):
         qty = 1
-
     cart = session.get('cart', [])
-
     found = False
     for item in cart:
         if str(item.get('id')) == str(product_id):
             item['qty'] = int(item.get('qty', 1)) + qty
             found = True
             break
-
     if not found:
         try:
             price = float(data.get('price') or 0)
         except (TypeError, ValueError):
             price = 0.0
-        product = {
-            'id': product_id,
-            'name': data.get('name') or data.get('title') or 'Product',
-            'price': price,
-            'label': data.get('label'),
-            'qty': qty,
-            'image': data.get('image')
-        }
+        product = {'id': product_id, 'name': data.get('name') or data.get(
+            'title') or 'Product', 'price': price, 'label': data.get('label'), 'qty': qty, 'image': data.get('image')}
         cart.append(product)
-
     session['cart'] = cart
     session.modified = True
-
     print("ADD_TO_CART payload:", data)
     print("CURRENT CART:", cart)
-
     return jsonify({"status": "success", "cart": cart})
 
 
@@ -216,45 +193,84 @@ def clear_cart():
     return jsonify({"status": "success"})
 
 
-# Order submission
+# ...existing code...
 @app.route('/order', methods=['POST'])
 def submit_order():
     data = request.get_json() or {}
-    try:
-        total_val = float(data.get('total') or 0)
-    except (TypeError, ValueError):
-        total_val = 0.0
+    customer_name = data.get('fullname') or data.get('name') or 'Guest'
+    customer_email = data.get('email') or ''
+    customer_address = data.get('address') or ''
+    customer_phone = data.get('phone') or ''
 
-    order = Order(
-        fullname=data.get('fullname') or data.get('name') or 'Guest',
-        email=data.get('email') or '',
-        address=data.get('address') or '',
-        phone=data.get('phone') or '',
-        instructions=data.get('instructions') or '',
-        cardname=data.get('cardname'),
-        cardnumber=(data.get('cardnumber') or '')[:64],
-        expiry=data.get('expiry'),
-        cvv=(data.get('cvv') or '')[:10],
-        items=str(session.get('cart', [])),
-        total=total_val
-    )
+    # Compute total from session cart (preferred)
+    cart = session.get('cart', []) or []
+    computed_total = 0.0
+    try:
+        computed_total = round(sum(
+            float(item.get('price', 0)) * int(item.get('qty', 1)) for item in cart
+        ), 2)
+    except Exception:
+        # safe fallback
+        computed_total = 0.0
+
+    # If cart is empty and frontend provided a total, use it as fallback
+    if computed_total == 0.0:
+        try:
+            provided = data.get('total')
+            if provided is not None and provided != '':
+                computed_total = round(float(provided), 2)
+        except Exception:
+            computed_total = 0.0
+
+    # create/find customer
+    customer = None
+    if customer_email:
+        customer = Customer.query.filter_by(email=customer_email).first()
+    if customer:
+        customer.name = customer_name
+        customer.address = customer_address
+        customer.phone = customer_phone
+    else:
+        unique_email = customer_email or f'guest-{os.urandom(6).hex()}@example.local'
+        customer = Customer(name=customer_name, email=unique_email,
+                            address=customer_address, phone=customer_phone)
+        db.session.add(customer)
 
     try:
+        db.session.flush()
+        # save order with computed total
+        order = Order(customer_id=customer.id, total_price=computed_total)
         db.session.add(order)
+        db.session.flush()
+
+        for it in cart:
+            oi = OrderItem(
+                order_id=order.id,
+                product_id=it.get('id'),
+                product_name=it.get('name'),
+                price=float(it.get('price') or 0),
+                quantity=int(it.get('qty') or 1)
+            )
+            db.session.add(oi)
+
         db.session.commit()
         session['cart'] = []
         session.modified = True
-        return jsonify({"status": "success", "message": "Order received"})
+
+        # debug output
+        print("ORDER SAVED:", {"order_id": order.id,
+              "total": computed_total, "cart": cart})
+
+        return jsonify({"status": "success", "message": "Order received", "order_id": order.id})
     except Exception as e:
         db.session.rollback()
         import traceback
-        import sys
         traceback.print_exc(file=sys.stderr)
         return jsonify({"status": "error", "message": "Server error saving order", "detail": str(e)}), 500
+# ...existing code...
 
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-# ...existing code...
