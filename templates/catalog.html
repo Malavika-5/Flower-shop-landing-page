@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Catalog</title></head>
+<body>
+<h1>Catalog</h1>
+<ul>
+  {% for p in products %}
+    <li>{{ p.name }} — ${{ "%.2f"|format(p.price) }}</li>
+  {% else %}
+    <li>No products</li>
+  {% endfor %}
+</ul>
+</body>
+</html>
